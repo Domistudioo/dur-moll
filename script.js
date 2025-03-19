@@ -25,7 +25,7 @@ let isPlaying = false;
 let timeoutIds = [];
 let activeAudio = [];
 
-// ✅ Funkcja odtwarzania pojedynczego dźwięku
+// ✅ Funkcja odtwarzania pojedynczego dźwięku (z przycinaniem)
 function playNoteAudio(note) {
     if (!notes[note]) {
         console.error(`❌ Brak pliku dla nuty ${note}`);
@@ -37,11 +37,11 @@ function playNoteAudio(note) {
     audio.play().catch(error => console.error(`❌ Błąd odtwarzania ${notes[note]}:`, error));
 
     activeAudio.push(audio);
-    
+
     let stopTimeout = setTimeout(() => {
         audio.pause();
         audio.currentTime = 0;
-    }, 850);
+    }, 850); // Skrócenie dźwięku przed kolejnym
 
     timeoutIds.push(stopTimeout);
 }
