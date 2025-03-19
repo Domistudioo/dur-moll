@@ -1,0 +1,54 @@
+/* Ustawienia globalne */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+/* Kontener główny */
+.container {
+    margin-top: 50px;
+}
+
+/* Nagłówek */
+h1 {
+    color: #198754;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Karty */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+    background: #ffffff;
+    padding: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Przyciski */
+.btn-custom {
+    font-size: 18px;
+    padding: 12px 20px;
+    transition: 0.3s;
+    border-radius: 8px;
+}
+
+.btn-custom:hover {
+    background-color: #198754;
+    color: #fff;
+}
+
+/* Stopka */
+.footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #6c757d;
+}
