@@ -2,10 +2,11 @@
 let selectedIntervals = [];
 let correctInterval;
 let baseNote;
+let lastBaseNote, lastInterval;
 let correctCount = 0;
 let incorrectCount = 0;
 let isPlaying = false; // Flaga oznaczająca, czy coś gra
-let timeoutIds = []; // Przechowywanie timeoutów, żeby je czyścić
+let timeoutIds = []; // Przechowywanie timeoutów
 
 // ✅ Pełna skala chromatyczna
 const noteNames = [
@@ -56,6 +57,8 @@ function playNewInterval() {
 
     baseNote = noteNames[Math.floor(Math.random() * (noteNames.length - 12))];
     correctInterval = selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
+    lastBaseNote = baseNote;
+    lastInterval = correctInterval;
 
     let nextNote = noteNames[noteNames.indexOf(baseNote) + correctInterval];
 
@@ -77,7 +80,7 @@ function playNewInterval() {
             timeoutIds.push(setTimeout(() => {
                 audio.pause();
                 audio.currentTime = 0;
-            }, 850)); 
+            }, 850));
 
         }, index * 800); // Opóźnienie między nutami = 800ms
 
@@ -90,12 +93,42 @@ function playNewInterval() {
     }, notesToPlay.length * 800));
 }
 
-// ✅ Powtórzenie ostatniego interwału
+// ✅ Powtórzenie ostatniego interwału (NAPRAWIONE)
 function repeatLastInterval() {
-    if (isPlaying || !correctInterval) return;
+    if (isPlaying || !lastBaseNote || !lastInterval) return;
 
-    console.log(`🔁 Powtórzenie interwału: ${baseNote} → ${noteNames[noteNames.indexOf(baseNote) + correctInterval]}`);
-    playNewInterval();
+    console.log(`🔁 Powtórzenie interwału: ${lastBaseNote} → ${noteNames[noteNames.indexOf(lastBaseNote) + lastInterval]}`);
+
+    stopAllAudio();
+    clearAllTimeouts();
+
+    let nextNote = noteNames[noteNames.indexOf(lastBaseNote) + lastInterval];
+
+    isPlaying = true;
+
+    let notesToPlay = [lastBaseNote, nextNote];
+
+    notesToPlay.forEach((note, index) => {
+        let timeoutId = setTimeout(() => {
+            if (!isPlaying) return;
+
+            let audio = new Audio(notes[note]);
+            console.log(`▶️ Odtwarzam: ${note}`);
+            audio.play().catch(error => console.error(`❌ Błąd odtwarzania ${notes[note]}:`, error));
+
+            timeoutIds.push(setTimeout(() => {
+                audio.pause();
+                audio.currentTime = 0;
+            }, 850));
+
+        }, index * 800);
+
+        timeoutIds.push(timeoutId);
+    });
+
+    timeoutIds.push(setTimeout(() => {
+        isPlaying = false;
+    }, notesToPlay.length * 800));
 }
 
 // ✅ Funkcja sprawdzania odpowiedzi użytkownika
