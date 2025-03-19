@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test na Gamy</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            user-select: none; /* Prevent text selection */
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .btn-custom {
+            font-size: 18px;
+            padding: 10px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #198754;
+            font-weight: bold;
+        }
+
+        .feedback {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><i class="fas fa-music"></i> Test na Gamy</h1>
+
+        <!-- Wybór gam -->
+        <div class="card p-4 mt-4">
+            <h3 class="text-center"><i class="fas fa-check-square"></i> Wybierz gamy do testu</h3>
+            <button class="btn btn-secondary btn-sm mb-3" onclick="toggleAllScales()">Zaznacz/Odznacz wszystko</button>
+            <div class="row">
+                <div class="col-md-6">
+                    <label><input type="checkbox" class="scale-checkbox" value="major"> Durowa</label><br>
+                </div>
+                <div class="col-md-6">
+                    <label><input type="checkbox" class="scale-checkbox" value="dorian"> Molowa dorycka</label><br>
+                    <label><input type="checkbox" class="scale-checkbox" value="harmonicMinor"> Molowa harmoniczna</label><br>
+                    <label><input type="checkbox" class="scale-checkbox" value="melodicMinor"> Molowa melodyczna</label><br>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start testu -->
+        <div class="text-center mt-4">
+            <button class="btn btn-primary btn-lg" onclick="startScaleTest()"><i class="fas fa-play"></i> Rozpocznij test</button>
+        </div>
+
+        <!-- Odtwarzanie gamy -->
+        <div class="text-center mt-4">
+            <button class="btn btn-success btn-lg" onclick="repeatLastScale()"><i class="fas fa-redo"></i> Powtórz gamę</button>
+        </div>
+
+        <!-- Statystyki -->
+        <div class="text-center mt-3">
+            <p>Poprawne odpowiedzi: <span id="correct-count">0</span></p>
+            <p>Błędne odpowiedzi: <span id="incorrect-count">0</span></p>
+        </div>
+
+        <!-- Wybór odpowiedzi -->
+        <div class="text-center">
+            <select id="scale-answer" class="form-select w-50 mx-auto">
+                <option value="">Wybierz gamę...</option>
+                <option value="major">Durowa</option>
+                <option value="dorian">Molowa dorycka</option>
+                <option value="harmonicMinor">Molowa harmoniczna</option>
+                <option value="melodicMinor">Molowa melodyczna</option>
+            </select>
+            <button class="btn btn-warning mt-3" onclick="checkScaleAnswer()">Sprawdź</button>
+        </div>
+
+        <p id="feedback" class="feedback"></p>
+
+        <!-- Przycisk powrotu do strony głównej -->
+        <div class="text-center mt-5">
+            <button class="btn btn-dark btn-lg" onclick="window.location.href='baza.html'">
+                <i class="fas fa-arrow-left"></i> Powrót do strony głównej
+            </button>
+        </div>
+
+        <!-- Import pliku JavaScript -->
+        <script src="script.js"></script>
+    </div>
+</body>
+<div class="footer mt-5">
+    &copy; Copyright 2025 | Domistudio
+</div>
+</html>

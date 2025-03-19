@@ -1,10 +1,11 @@
-// ✅ Upewniamy się, że zawsze jedno z pól jest zaznaczone (Po kolei domyślnie)
+// ✅ Zapewnienie, że jedno z pól (Po kolei/Razem) jest zawsze zaznaczone
 function toggleOption(selected) {
     if (selected === 'sequential') {
         document.getElementById('together').checked = false;
     } else {
         document.getElementById('sequential').checked = false;
     }
+    toggleButtons();
 }
 
 // ✅ Pełna skala chromatyczna
@@ -13,40 +14,93 @@ const noteNames = [
     'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4'
 ];
 
-// ✅ Mapowanie nut na pliki audio
+// ✅ Mapowanie nut do plików `.mp3`
 const notes = {};
 noteNames.forEach((note, index) => {
-    notes[note] = `piano/${index + 28}.mp3`; // Ścieżka do plików MP3
+    notes[note] = `piano/${index + 28}.mp3`;
 });
+
+// ✅ Zmienna kontrolująca aktywne odtwarzanie
+let isPlaying = false;
+let timeoutIds = [];
+let activeAudio = [];
 
 // ✅ Funkcja odtwarzania pojedynczego dźwięku
 function playNoteAudio(note) {
-    if (notes[note]) {
-        new Audio(notes[note]).play();
-    } else {
-        console.error("Nie znaleziono dźwięku:", note);
+    if (!notes[note]) {
+        console.error(`❌ Brak pliku dla nuty ${note}`);
+        return;
     }
+
+    let audio = new Audio(notes[note]);
+    console.log(`▶️ Odtwarzam: ${note}`);
+    audio.play().catch(error => console.error(`❌ Błąd odtwarzania ${notes[note]}:`, error));
+
+    activeAudio.push(audio);
+    
+    let stopTimeout = setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+    }, 850);
+
+    timeoutIds.push(stopTimeout);
 }
 
-// ✅ Funkcja odtwarzania interwałów
+// ✅ Pobiera bazowy dźwięk na podstawie wyboru
+function getBaseNote() {
+    let isRandom = document.getElementById("random").checked;
+    if (isRandom) {
+        return noteNames[Math.floor(Math.random() * (noteNames.length - 12))];
+    }
+    return "C3"; // Domyślny dźwięk
+}
+
+// ✅ Odtwarzanie interwału z uwzględnieniem kierunku
 function playInterval(interval) {
-    let baseNote = 'C3';
+    if (isPlaying) return;
+    stopAllAudio();
+
+    let baseNote = getBaseNote();
     let nextNote = noteNames[noteNames.indexOf(baseNote) + interval];
+
+    let direction = document.querySelector('input[name="direction"]:checked').id;
+
+    let notesToPlay;
+    if (direction === "up") {
+        notesToPlay = [baseNote, nextNote];
+    } else if (direction === "down") {
+        notesToPlay = [nextNote, baseNote];
+    } else {
+        notesToPlay = [baseNote, nextNote, baseNote]; // Góra → Dół
+    }
 
     let isSequential = document.getElementById("sequential").checked;
     let isTogether = document.getElementById("together").checked;
 
+    isPlaying = true;
+
     if (isTogether) {
-        playNoteAudio(baseNote);
-        playNoteAudio(nextNote);
-    } else if (isSequential) {
-        playNoteAudio(baseNote);
-        setTimeout(() => playNoteAudio(nextNote), 1000);
+        notesToPlay.forEach(playNoteAudio);
+    } else {
+        notesToPlay.forEach((note, index) => {
+            let timeoutId = setTimeout(() => {
+                if (!isPlaying) return;
+                playNoteAudio(note);
+            }, index * 800);
+            timeoutIds.push(timeoutId);
+        });
     }
+
+    timeoutIds.push(setTimeout(() => {
+        isPlaying = false;
+    }, notesToPlay.length * 800));
 }
 
-// ✅ Funkcja odtwarzania trójdźwięków
+// ✅ Odtwarzanie trójdźwięków z kierunkiem
 function playChord(type) {
+    if (isPlaying) return;
+    stopAllAudio();
+
     let chords = {
         'major': [0, 4, 7],
         'major1': [4, 7, 12],
@@ -58,173 +112,57 @@ function playChord(type) {
         'diminished': [0, 3, 6]
     };
 
-    let baseNote = 'C3';
+    let baseNote = getBaseNote();
     let notesToPlay = chords[type].map(i => noteNames[noteNames.indexOf(baseNote) + i]);
+
+    let direction = document.querySelector('input[name="direction"]:checked').id;
+    if (direction === "down") {
+        notesToPlay.reverse();
+    } else if (direction === "updown") {
+        notesToPlay = [...notesToPlay, ...notesToPlay.slice(0, -1).reverse()];
+    }
 
     let isSequential = document.getElementById("sequential").checked;
     let isTogether = document.getElementById("together").checked;
 
-    if (isSequential) {
-        notesToPlay.forEach((note, index) => {
-            setTimeout(() => playNoteAudio(note), index * 500);
-        });
-    } else {
+    isPlaying = true;
+
+    if (isTogether) {
         notesToPlay.forEach(playNoteAudio);
-    }
-}
-
-// ✅ TEST INTERWAŁÓW
-
-let selectedIntervals = [];
-let correctInterval;
-let baseNote;
-let lastBaseNote, lastInterval;
-let correctCount = 0;
-let incorrectCount = 0;
-
-// ✅ Funkcja wybierania interwałów do testu
-function startTest() {
-    selectedIntervals = Array.from(document.querySelectorAll('.interval-checkbox:checked'))
-        .map(input => parseInt(input.value));
-
-    if (selectedIntervals.length === 0) {
-        alert("Wybierz przynajmniej jeden interwał!");
-        return;
-    }
-
-    correctCount = 0;
-    incorrectCount = 0;
-    document.getElementById("correct-count").innerText = correctCount;
-    document.getElementById("incorrect-count").innerText = incorrectCount;
-    document.getElementById("feedback").innerText = "";
-
-    playNewInterval();
-}
-
-// ✅ Funkcja odtwarzania losowego interwału w teście
-function playNewInterval() {
-    if (selectedIntervals.length === 0) {
-        console.error("❌ Błąd: Nie wybrano żadnych interwałów!");
-        return;
-    }
-
-    baseNote = noteNames[Math.floor(Math.random() * (noteNames.length - 12))];
-    correctInterval = selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
-
-    lastBaseNote = baseNote;
-    lastInterval = correctInterval;
-
-    let nextNote = noteNames[noteNames.indexOf(baseNote) + correctInterval];
-
-    console.log(`🎵 Odtwarzanie interwału: ${baseNote} → ${nextNote}`);
-    playNoteAudio(baseNote);
-    setTimeout(() => playNoteAudio(nextNote), 1000);
-}
-
-// ✅ Powtórzenie ostatniego interwału
-function repeatLastInterval() {
-    if (!lastBaseNote || !lastInterval) {
-        console.error("❌ Błąd: Nie ma ostatniego interwału do powtórzenia!");
-        return;
-    }
-
-    let nextNote = noteNames[noteNames.indexOf(lastBaseNote) + lastInterval];
-
-    console.log(`🔁 Powtórzenie interwału: ${lastBaseNote} → ${nextNote}`);
-    playNoteAudio(lastBaseNote);
-    setTimeout(() => playNoteAudio(nextNote), 1000);
-}
-
-// ✅ Funkcja sprawdzania odpowiedzi użytkownika
-// ✅ Funkcja sprawdzania odpowiedzi użytkownika
-function checkAnswer() {
-    let userAnswer = parseInt(document.getElementById("answer").value);
-
-    if (isNaN(userAnswer)) {
-        alert("Wybierz interwał przed sprawdzeniem!");
-        return;
-    }
-
-    if (userAnswer === correctInterval) {
-        document.getElementById("feedback").innerText = "✅ Poprawnie!";
-        correctCount++;
-        document.getElementById("correct-count").innerText = correctCount;
-        setTimeout(() => playNewInterval(), 1500);
     } else {
-        document.getElementById("feedback").innerText = `❌ Niepoprawnie! To był: ${getIntervalName(correctInterval)}`;
-        incorrectCount++;
-        document.getElementById("incorrect-count").innerText = incorrectCount;
-        
-        // ⏳ Po 2 sekundach gra nowy interwał nawet po błędnej odpowiedzi
-        setTimeout(() => {
-            document.getElementById("feedback").innerText = "";
-            playNewInterval();
-        }, 2000);
-    }
-}
-
-
-// ✅ Funkcja zwracająca nazwę interwału na podstawie liczby półtonów
-function getIntervalName(interval) {
-    const names = {
-        0: "Pryma",
-        1: "Sekunda mała",
-        2: "Sekunda wielka",
-        3: "Tercja mała",
-        4: "Tercja wielka",
-        5: "Kwarta czysta",
-        6: "Tryton",
-        7: "Kwinta czysta",
-        8: "Seksta mała",
-        9: "Seksta wielka",
-        10: "Septyma mała",
-        11: "Septyma wielka",
-        12: "Oktawa"
-    };
-    return names[interval] || "Nieznany interwał";
-}
-
-// ✅ Funkcja odtwarzania dźwięku (DODANE LOGI DO DEBUGOWANIA)
-function playNoteAudio(note) {
-    if (!notes[note]) {
-        console.error(`❌ Błąd: Brak pliku dla nuty ${note}`);
-        return;
+        notesToPlay.forEach((note, index) => {
+            let timeoutId = setTimeout(() => {
+                if (!isPlaying) return;
+                playNoteAudio(note);
+            }, index * 800);
+            timeoutIds.push(timeoutId);
+        });
     }
 
-    let audio = new Audio(notes[note]);
-    console.log(`▶️ Odtwarzam: ${notes[note]}`);
+    timeoutIds.push(setTimeout(() => {
+        isPlaying = false;
+    }, notesToPlay.length * 800));
+}
 
-    audio.play().catch((error) => {
-        console.error(`❌ Błąd odtwarzania ${notes[note]}:`, error);
+// ✅ Funkcja zatrzymywania wszystkich dźwięków
+function stopAllAudio() {
+    isPlaying = false;
+    timeoutIds.forEach(timeout => clearTimeout(timeout));
+    timeoutIds = [];
+
+    activeAudio.forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
     });
-}
-// ✅ Funkcja do zaznaczania/odznaczania wszystkich interwałów
-function toggleAllIntervals() {
-    let checkboxes = document.querySelectorAll(".interval-checkbox");
-    let allChecked = [...checkboxes].every(checkbox => checkbox.checked);
-
-    if (allChecked) {
-        checkboxes.forEach(checkbox => checkbox.checked = false);
-    } else {
-        checkboxes.forEach(checkbox => checkbox.checked = true);
-    }
+    activeAudio = [];
 }
 
-// ✅ Start testu i odtworzenie pierwszego interwału
-function startTest() {
-    selectedIntervals = Array.from(document.querySelectorAll(".interval-checkbox:checked"))
-        .map(input => parseInt(input.value));
+// ✅ Blokowanie wyboru kierunku, jeśli wybrano "Razem"
+function toggleButtons() {
+    let together = document.getElementById("together").checked;
+    let directionButtons = document.querySelectorAll('input[name="direction"]');
 
-    if (selectedIntervals.length === 0) {
-        alert("Wybierz przynajmniej jeden interwał!");
-        return;
-    }
-
-    correctCount = 0;
-    incorrectCount = 0;
-    document.getElementById("correct-count").innerText = correctCount;
-    document.getElementById("incorrect-count").innerText = incorrectCount;
-    document.getElementById("feedback").innerText = "";
-
-    playNewInterval();
+    directionButtons.forEach(button => {
+        button.disabled = together;
+    });
 }
