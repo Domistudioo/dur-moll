@@ -8,7 +8,7 @@ function toggleOption(selected) {
     toggleButtons();
 }
 
-// ✅ Pełna skala chromatyczna
+// ✅ Pełna skala chromatyczna (C3–G4) pod stare sample 28–47.mp3
 const noteNames = [
     'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
     'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4'
@@ -96,24 +96,40 @@ function playInterval(interval) {
     }, notesToPlay.length * 800));
 }
 
-// ✅ Odtwarzanie trójdźwięków z kierunkiem
+// ✅ Definicja akordów dla szybkiego odtwarzania (trójdźwięki + D7)
+const chords = {
+    // trójdźwięki
+    'major':     [0, 4, 7],
+    'major1':    [4, 7, 12],
+    'major2':    [7, 12, 16],
+    'minor':     [0, 3, 7],
+    'minor1':    [3, 7, 12],
+    'minor2':    [7, 12, 15],
+    'augmented': [0, 4, 8],
+    'diminished':[0, 3, 6],
+
+    // D7 + przewroty (jak w teście)
+    'dom7':   [0, 4, 7, 10],
+    'dom7_1': [4, 7, 10, 12],
+    'dom7_2': [7, 10, 12, 16],
+    'dom7_3': [10, 12, 16, 19]
+};
+
+// ✅ Odtwarzanie akordu z kierunkiem
 function playChord(type) {
     if (isPlaying) return;
     stopAllAudio();
 
-    let chords = {
-        'major': [0, 4, 7],
-        'major1': [4, 7, 12],
-        'major2': [7, 12, 16],
-        'minor': [0, 3, 7],
-        'minor1': [3, 7, 12],
-        'minor2': [7, 12, 15],
-        'augmented': [0, 4, 8],
-        'diminished': [0, 3, 6]
-    };
+    if (!chords[type]) {
+        console.error(`❌ Nieznany akord: ${type}`);
+        return;
+    }
 
     let baseNote = getBaseNote();
-    let notesToPlay = chords[type].map(i => noteNames[noteNames.indexOf(baseNote) + i]);
+    let notesToPlay = chords[type].map(i => {
+        const idx = noteNames.indexOf(baseNote) + i;
+        return noteNames[idx];
+    });
 
     let direction = document.querySelector('input[name="direction"]:checked').id;
     if (direction === "down") {

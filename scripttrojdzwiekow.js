@@ -1,5 +1,5 @@
 // ==========================================
-// TEST TRÓJDŹWIĘKÓW – LOGIKA
+// TEST TRÓJDŹWIĘKÓW + D7 – LOGIKA
 // ==========================================
 
 // Stan
@@ -45,7 +45,7 @@ function getRandomBaseIndex(maxOffset) {
 }
 
 // ------------------------------------------
-// DEFINICJA AKORDÓW
+// DEFINICJA AKORDÓW (półtony od basu)
 // ------------------------------------------
 
 const chords = {
@@ -56,7 +56,13 @@ const chords = {
     minor1:    [3, 7, 12],
     minor2:    [7, 12, 15],
     augmented: [0, 4, 8],
-    diminished:[0, 3, 6]
+    diminished:[0, 3, 6],
+
+    // Dominanta septymowa (D7)
+    dom7:   [0, 4, 7, 10],   // pozycja zasadnicza
+    dom7_1: [4, 7, 10, 12],  // I przewrót
+    dom7_2: [7, 10, 12, 16], // II przewrót
+    dom7_3: [10, 12, 16, 19] // III przewrót
 };
 
 const chordNamesPL = {
@@ -67,7 +73,12 @@ const chordNamesPL = {
     minor1:    "Molowy (I przewrót)",
     minor2:    "Molowy (II przewrót)",
     augmented: "Zwiększony",
-    diminished:"Zmniejszony"
+    diminished:"Zmniejszony",
+
+    dom7:   "D7 (pozycja zasadnicza)",
+    dom7_1: "D7 (I przewrót)",
+    dom7_2: "D7 (II przewrót)",
+    dom7_3: "D7 (III przewrót)"
 };
 
 // ------------------------------------------
@@ -124,7 +135,7 @@ function startChordTest() {
         .map(x => x.value);
 
     if (selectedChords.length === 0) {
-        alert("Wybierz przynajmniej jeden trójdźwięk!");
+        alert("Wybierz przynajmniej jeden akord!");
         return;
     }
 
@@ -141,7 +152,7 @@ function startChordTest() {
 }
 
 // ------------------------------------------
-// GRANIE NOWEGO TRÓJDŹWIĘKU
+// GRANIE NOWEGO AKORDU
 // ------------------------------------------
 
 function playNewChord() {
@@ -157,12 +168,10 @@ function playNewChord() {
     correctChordBaseIndex = getRandomBaseIndex(maxOffset);
     lastChordBaseIndex = correctChordBaseIndex;
 
-    console.log(`🎵 Trójdźwięk: ${chordNamesPL[correctChord]} od nuty #${correctChordBaseIndex}`);
-
+    console.log(`🎵 Akord: ${chordNamesPL[correctChord]} od nuty #${correctChordBaseIndex}`);
     playChord(correctChord, correctChordBaseIndex);
 }
 
-// powtórzenie ostatniego
 function repeatLastChord() {
     if (isPlaying || !correctChord || !lastChordBaseIndex) return;
 
@@ -172,7 +181,6 @@ function repeatLastChord() {
     playChord(correctChord, lastChordBaseIndex);
 }
 
-// właściwe granie trójdźwięku
 function playChord(type, baseIndex) {
     const pattern = chords[type];
     if (!pattern) {
@@ -223,7 +231,7 @@ function checkChordAnswer() {
 
     const userAnswer = document.getElementById("chord-answer").value;
     if (!userAnswer) {
-        alert("Wybierz trójdźwięk przed sprawdzeniem!");
+        alert("Wybierz akord przed sprawdzeniem!");
         return;
     }
 

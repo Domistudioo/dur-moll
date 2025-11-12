@@ -1,52 +1,44 @@
-// ------------------------------------------
-// KONFIGURACJA
-// ------------------------------------------
+// ✅ Lista wybranych interwałów do testu
 let selectedIntervals = [];
 let correctInterval;
 let baseNoteIndex;
 let lastBaseNoteIndex, lastInterval;
 let correctCount = 0;
 let incorrectCount = 0;
-let isPlaying = false;
-let timeoutIds = [];
+let isPlaying = false; // Flaga oznaczająca, czy coś gra
+let timeoutIds = []; // Przechowywanie timeoutów
 
+// ✅ Konfiguracja klawiatury – mamy 88 plików: 1.mp3 ... 88.mp3
 const TOTAL_NOTES = 88;
 
-// środek klawiatury
-const CENTER_NOTE = 44;
-const CENTER_SPREAD = 18;
-
-// historia – aby nie było: oktawa–oktawa–oktawa albo pryma–oktawa–pryma–oktawa
+// Historia interwałów, żeby unikać powtórek typu: oktawa, oktawa, oktawa / pryma–oktawa–pryma–oktawa
 let prevInterval = null;
 let prevPrevInterval = null;
 
-// ------------------------------------------
-// FUNKCJE POMOCNICZE
-// ------------------------------------------
-
+// Losowy indeks nuty (1..TOTAL_NOTES)
 function getRandomBaseIndex(maxOffset) {
-    const preferredMin = CENTER_NOTE - CENTER_SPREAD;
-    const preferredMax = CENTER_NOTE + CENTER_SPREAD;
-    const maxBaseAllowed = TOTAL_NOTES - maxOffset;
-
-    const min = Math.max(1, preferredMin);
-    const max = Math.min(maxBaseAllowed, preferredMax);
-
-    const low = Math.max(1, Math.min(min, maxBaseAllowed));
-    const high = Math.max(low, max);
-
-    return Math.floor(Math.random() * (high - low + 1)) + low;
+    const maxBase = TOTAL_NOTES - maxOffset;
+    return Math.floor(Math.random() * maxBase) + 1; // 1..maxBase
 }
 
+// Zwraca ścieżkę do pliku dźwiękowego
 function getNotePath(index) {
     return `piano/${index}.mp3`;
 }
 
+// Odtwarza pojedynczą nutę (z przycinaniem)
 function playNoteAudio(index) {
-    if (index < 1 || index > TOTAL_NOTES) return;
+    if (index < 1 || index > TOTAL_NOTES) {
+        console.error(`❌ Nieprawidłowy indeks nuty: ${index}`);
+        return;
+    }
 
     const audio = new Audio(getNotePath(index));
-    audio.play().catch(() => {});
+    console.log(`▶️ Odtwarzam nutę #${index}`);
+
+    audio.play().catch(error => console.error(`❌ Błąd odtwarzania ${getNotePath(index)}:`, error));
+
+    // Skracamy dźwięk przed kolejnym
     const stopTimeout = setTimeout(() => {
         audio.pause();
         audio.currentTime = 0;
@@ -55,16 +47,14 @@ function playNoteAudio(index) {
     timeoutIds.push(stopTimeout);
 }
 
-// ------------------------------------------
-// START TESTU
-// ------------------------------------------
-
+// ✅ Zaznaczanie/Odznaczanie wszystkich interwałów
 function toggleAllIntervals() {
     const checkboxes = document.querySelectorAll(".interval-checkbox");
-    const allChecked = [...checkboxes].every(ch => ch.checked);
-    checkboxes.forEach(ch => ch.checked = !allChecked);
+    const allChecked = [...checkboxes].every(checkbox => checkbox.checked);
+    checkboxes.forEach(checkbox => (checkbox.checked = !allChecked));
 }
 
+// ✅ Wybór interwału z unikaniem powtarzania tych samych schematów
 function chooseRandomInterval() {
     if (selectedIntervals.length === 0) return null;
     if (selectedIntervals.length === 1) {
@@ -74,107 +64,138 @@ function chooseRandomInterval() {
         return only;
     }
 
-    let candidate, attempts = 0;
+    let candidate = null;
+    let attempts = 0;
+
     do {
         candidate = selectedIntervals[Math.floor(Math.random() * selectedIntervals.length)];
         attempts++;
 
+        // warunki odrzucenia:
+        // 1) taki sam jak poprzedni
+        // 2) taki sam jak przed-poprzedni (unika wzoru A–B–A–B)
         const forbidden =
-            candidate === prevInterval ||
-            candidate === prevPrevInterval;
+            (prevInterval !== null && candidate === prevInterval) ||
+            (prevInterval !== null && prevPrevInterval !== null && candidate === prevPrevInterval);
 
         if (!forbidden || attempts > 20) break;
     } while (true);
 
     prevPrevInterval = prevInterval;
     prevInterval = candidate;
+
     return candidate;
 }
 
+// ✅ Start testu interwałów
 function startTest() {
-    if (isPlaying) return;
+    if (isPlaying) return; // Jeśli dźwięk gra, nie pozwól na nowe odtwarzanie
 
-    selectedIntervals = [...document.querySelectorAll(".interval-checkbox:checked")]
-        .map(x => parseInt(x.value));
+    selectedIntervals = Array.from(document.querySelectorAll(".interval-checkbox:checked"))
+        .map(input => parseInt(input.value));
 
     if (selectedIntervals.length === 0) {
         alert("Wybierz przynajmniej jeden interwał!");
         return;
     }
 
-    correctCount = incorrectCount = 0;
-    document.getElementById("correct-count").innerText = 0;
-    document.getElementById("incorrect-count").innerText = 0;
+    correctCount = 0;
+    incorrectCount = 0;
+    document.getElementById("correct-count").innerText = correctCount;
+    document.getElementById("incorrect-count").innerText = incorrectCount;
     document.getElementById("feedback").innerText = "";
 
-    prevInterval = prevPrevInterval = null;
+    prevInterval = null;
+    prevPrevInterval = null;
+
     playNewInterval();
 }
 
-// ------------------------------------------
-// GRANIE INTERWAŁU
-// ------------------------------------------
-
+// ✅ Odtwarzanie losowego interwału
 function playNewInterval() {
-    if (isPlaying) return;
+    if (isPlaying) return; // Jeśli dźwięk nadal gra, nie pozwól na nowe odtwarzanie
 
     stopAllAudio();
     clearAllTimeouts();
+
+    const maxInterval = 12; // największy interwał w półtonach (oktawa)
+    baseNoteIndex = getRandomBaseIndex(maxInterval);
 
     correctInterval = chooseRandomInterval();
     if (correctInterval === null) return;
 
-    baseNoteIndex = getRandomBaseIndex(12);
     lastBaseNoteIndex = baseNoteIndex;
     lastInterval = correctInterval;
 
-    const nextNote = baseNoteIndex + correctInterval;
+    const nextNoteIndex = baseNoteIndex + correctInterval;
+
+    console.log(`🎵 Interwał: baza #${baseNoteIndex} → #${nextNoteIndex} (półtonów: ${correctInterval})`);
+
     isPlaying = true;
 
-    [baseNoteIndex, nextNote].forEach((n, i) => {
-        const id = setTimeout(() => {
-            if (!isPlaying) return;
-            playNoteAudio(n);
-        }, i * 800);
-        timeoutIds.push(id);
+    const notesToPlay = [baseNoteIndex, nextNoteIndex];
+
+    notesToPlay.forEach((noteIndex, index) => {
+        const timeoutId = setTimeout(() => {
+            if (!isPlaying) return; // Jeśli użytkownik kliknął "Sprawdź", to nie graj dalej
+            playNoteAudio(noteIndex);
+        }, index * 800); // Opóźnienie między nutami = 800ms
+
+        timeoutIds.push(timeoutId);
     });
 
-    timeoutIds.push(setTimeout(() => isPlaying = false, 1600));
+    // Po zakończeniu ostatniego dźwięku resetujemy flagę
+    timeoutIds.push(setTimeout(() => {
+        isPlaying = false;
+    }, notesToPlay.length * 800));
 }
 
+// ✅ Powtórzenie ostatniego interwału
 function repeatLastInterval() {
-    if (isPlaying || !lastBaseNoteIndex || lastInterval == null) return;
+    if (isPlaying || !lastBaseNoteIndex || lastInterval === null || lastInterval === undefined) return;
+
+    const nextNoteIndex = lastBaseNoteIndex + lastInterval;
+
+    console.log(`🔁 Powtórzenie interwału: baza #${lastBaseNoteIndex} → #${nextNoteIndex} (półtonów: ${lastInterval})`);
+
     stopAllAudio();
     clearAllTimeouts();
 
-    const n1 = lastBaseNoteIndex;
-    const n2 = n1 + lastInterval;
-
     isPlaying = true;
 
-    [n1, n2].forEach((n, i) => {
-        const id = setTimeout(() => playNoteAudio(n), i * 800);
-        timeoutIds.push(id);
+    const notesToPlay = [lastBaseNoteIndex, nextNoteIndex];
+
+    notesToPlay.forEach((noteIndex, index) => {
+        const timeoutId = setTimeout(() => {
+            if (!isPlaying) return;
+            playNoteAudio(noteIndex);
+        }, index * 800);
+
+        timeoutIds.push(timeoutId);
     });
 
-    timeoutIds.push(setTimeout(() => isPlaying = false, 1600));
+    timeoutIds.push(setTimeout(() => {
+        isPlaying = false;
+    }, notesToPlay.length * 800));
 }
 
-// ------------------------------------------
-// SPRAWDZANIE ODPOWIEDZI
-// ------------------------------------------
-
+// ✅ Funkcja sprawdzania odpowiedzi użytkownika
 function checkAnswer() {
     stopAllAudio();
     clearAllTimeouts();
 
-    const answer = parseInt(document.getElementById("answer").value);
-    if (answer === correctInterval) {
+    const userAnswer = parseInt(document.getElementById("answer").value);
+
+    if (isNaN(userAnswer)) {
+        alert("Wybierz interwał przed sprawdzeniem!");
+        return;
+    }
+
+    if (userAnswer === correctInterval) {
         document.getElementById("feedback").innerText = "✅ Poprawnie!";
         correctCount++;
     } else {
-        document.getElementById("feedback").innerText =
-            `❌ Źle! To był: ${getIntervalName(correctInterval)}`;
+        document.getElementById("feedback").innerText = `❌ Niepoprawnie! To był: ${getIntervalName(correctInterval)}`;
         incorrectCount++;
     }
 
@@ -187,7 +208,8 @@ function checkAnswer() {
     }, 2000);
 }
 
-function getIntervalName(i) {
+// ✅ Funkcja zwracająca nazwę interwału na podstawie liczby półtonów
+function getIntervalName(interval) {
     const names = {
         0: "Pryma",
         1: "Sekunda mała",
@@ -203,16 +225,18 @@ function getIntervalName(i) {
         11: "Septyma wielka",
         12: "Oktawa"
     };
-    return names[i] || i;
+    return names[interval] || "Nieznany interwał";
 }
 
-// ------------------------------------------
+// ✅ Funkcja zatrzymywania wszystkich dźwięków
 function stopAllAudio() {
     isPlaying = false;
-    timeoutIds.forEach(id => clearTimeout(id));
+    timeoutIds.forEach(timeout => clearTimeout(timeout));
     timeoutIds = [];
 }
+
+// ✅ Usuwanie wszystkich zaplanowanych timeoutów
 function clearAllTimeouts() {
-    timeoutIds.forEach(id => clearTimeout(id));
+    timeoutIds.forEach(timeout => clearTimeout(timeout));
     timeoutIds = [];
 }
