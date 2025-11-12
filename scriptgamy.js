@@ -1,49 +1,80 @@
+// ==========================================
+// TEST GAM – LOGIKA
+// ==========================================
+
 let selectedScales = [];
 let correctScale;
+let correctScaleBaseIndex;
+let lastScaleNotes = null;
 let correctCount = 0;
 let incorrectCount = 0;
-let activeAudio = []; // Przechowywanie aktywnych dźwięków
-let isPlaying = false; // Flaga oznaczająca, czy aktualnie coś gra
-let timeoutIds = []; // Przechowywanie timeoutów, żeby je czyścić
+let activeAudio = [];
+let isPlaying = false;
+let timeoutIds = [];
 
-// ✅ Mapowanie nut do plików `.mp3`
-const notes = {
-    'C3': 'piano/28.mp3', 'C#3': 'piano/29.mp3', 'D3': 'piano/30.mp3', 'D#3': 'piano/31.mp3',
-    'E3': 'piano/32.mp3', 'F3': 'piano/33.mp3', 'F#3': 'piano/34.mp3', 'G3': 'piano/35.mp3',
-    'G#3': 'piano/36.mp3', 'A3': 'piano/37.mp3', 'A#3': 'piano/38.mp3', 'B3': 'piano/39.mp3',
-    'C4': 'piano/40.mp3', 'C#4': 'piano/41.mp3', 'D4': 'piano/42.mp3', 'D#4': 'piano/43.mp3',
-    'E4': 'piano/44.mp3', 'F4': 'piano/45.mp3', 'F#4': 'piano/46.mp3', 'G4': 'piano/47.mp3'
-};
+// klawiatura 1–88.mp3 + środek
+const TOTAL_NOTES = 88;
+const CENTER_NOTE = 44;
+const CENTER_SPREAD = 18;
 
-// ✅ Kolejność nut w gamach
-const scales = {
-    'major': ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4'], // Durowa
-    'naturalMinor': ['C3', 'D3', 'D#3', 'F3', 'G3', 'G#3', 'A#3', 'C4'], // Naturalna molowa
-    'dorian': ['C3', 'D3', 'D#3', 'F3', 'G3', 'A3', 'B3', 'C4'], // Dorycka
-    'harmonicMinor': ['C3', 'D3', 'D#3', 'F3', 'G3', 'G#3', 'B3', 'C4'], // Harmoniczna
-    'melodicMinor': ['C3', 'D3', 'D#3', 'F3', 'G3', 'A3', 'B3', 'C4'], // Melodyczna (w górę)
-};
-
-// ✅ Mapowanie nazw gam na polski
-const scaleNamesPL = {
-    'major': "Durowa",
-    'naturalMinor': "Molowa naturalna",
-    'dorian': "Molowa dorycka",
-    'harmonicMinor': "Molowa harmoniczna",
-    'melodicMinor': "Molowa melodyczna"
-};
-
-// ✅ Zaznaczanie/Odznaczanie wszystkich gam
-function toggleAllScales() {
-    let checkboxes = document.querySelectorAll(".scale-checkbox");
-    let allChecked = [...checkboxes].every(checkbox => checkbox.checked);
-    checkboxes.forEach(checkbox => (checkbox.checked = !allChecked));
+function getNotePath(index) {
+    return `piano/${index}.mp3`;
 }
 
-// ✅ Start testu gam
+function getRandomBaseIndex(maxOffset) {
+    const preferredMin = CENTER_NOTE - CENTER_SPREAD;
+    const preferredMax = CENTER_NOTE + CENTER_SPREAD;
+    const maxBaseAllowed = TOTAL_NOTES - maxOffset;
+
+    const min = Math.max(1, preferredMin);
+    const max = Math.min(maxBaseAllowed, preferredMax);
+
+    const low = Math.max(1, Math.min(min, maxBaseAllowed));
+    const high = Math.max(low, max);
+
+    return Math.floor(Math.random() * (high - low + 1)) + low;
+}
+
+// ------------------------------------------
+// WZORY SKAL (w półtonach od dźwięku bazowego)
+// ------------------------------------------
+
+const scalePatterns = {
+    major:         [0, 2, 4, 5, 7, 9, 11, 12], // durowa
+    naturalMinor:  [0, 2, 3, 5, 7, 8, 10, 12], // naturalna molowa
+    dorian:        [0, 2, 3, 5, 7, 9, 10, 12], // dorycka
+    harmonicMinor: [0, 2, 3, 5, 7, 8, 11, 12], // harmoniczna
+    melodicMinorUp:[0, 2, 3, 5, 7, 9, 11, 12]  // melodyczna w górę
+};
+
+const scaleNamesPL = {
+    major:         "Durowa",
+    dorian:        "Molowa dorycka",
+    harmonicMinor: "Molowa harmoniczna",
+    melodicMinor:  "Molowa melodyczna"
+};
+
+// historia – żeby nie było cały czas tej samej gamy
+let prevScale = null;
+let prevPrevScale = null;
+
+// ------------------------------------------
+// UI: zaznacz wszystko
+// ------------------------------------------
+
+function toggleAllScales() {
+    const checkboxes = document.querySelectorAll(".scale-checkbox");
+    const allChecked = [...checkboxes].every(ch => ch.checked);
+    checkboxes.forEach(ch => ch.checked = !allChecked);
+}
+
+// ------------------------------------------
+// START TESTU
+// ------------------------------------------
+
 function startScaleTest() {
-    selectedScales = Array.from(document.querySelectorAll(".scale-checkbox:checked"))
-        .map(input => input.value);
+    selectedScales = [...document.querySelectorAll(".scale-checkbox:checked")]
+        .map(x => x.value);
 
     if (selectedScales.length === 0) {
         alert("Wybierz przynajmniej jedną gamę!");
@@ -52,107 +83,159 @@ function startScaleTest() {
 
     correctCount = 0;
     incorrectCount = 0;
-    document.getElementById("correct-count").innerText = correctCount;
-    document.getElementById("incorrect-count").innerText = incorrectCount;
+    document.getElementById("correct-count").innerText = "0";
+    document.getElementById("incorrect-count").innerText = "0";
     document.getElementById("feedback").innerText = "";
+
+    prevScale = null;
+    prevPrevScale = null;
 
     playNewScale();
 }
 
-// ✅ Odtwarzanie losowej gamy
+// ------------------------------------------
+// LOSOWANIE GAMY (z anty-spamem)
+// ------------------------------------------
+
+function chooseRandomScale() {
+    if (selectedScales.length === 0) return null;
+
+    if (selectedScales.length === 1) {
+        const only = selectedScales[0];
+        prevPrevScale = prevScale;
+        prevScale = only;
+        return only;
+    }
+
+    let candidate;
+    let attempts = 0;
+
+    do {
+        candidate = selectedScales[Math.floor(Math.random() * selectedScales.length)];
+        attempts++;
+
+        const forbidden =
+            candidate === prevScale ||
+            candidate === prevPrevScale;
+
+        if (!forbidden || attempts > 20) break;
+    } while (true);
+
+    prevPrevScale = prevScale;
+    prevScale = candidate;
+    return candidate;
+}
+
+// ------------------------------------------
+// GRANIE NOWEJ GAMY
+// ------------------------------------------
+
 function playNewScale() {
     if (selectedScales.length === 0) return;
 
-    stopAllAudio(); // Natychmiast zatrzymuje granie poprzednich dźwięków
-    clearAllTimeouts(); // Usuwa wszystkie zaplanowane dźwięki
+    stopAllAudio();
+    clearAllTimeouts();
 
-    correctScale = selectedScales[Math.floor(Math.random() * selectedScales.length)];
-    console.log(`🎵 Odtwarzanie gamy: ${scaleNamesPL[correctScale]}`);
+    correctScale = chooseRandomScale();
+    if (!correctScale) return;
 
-    let scaleNotes = getScaleNotes(correctScale);
+    correctScaleBaseIndex = getRandomBaseIndex(12);
+    const scaleNotes = getScaleNotes(correctScale, correctScaleBaseIndex);
+    lastScaleNotes = scaleNotes;
 
-    if (!scaleNotes) {
-        console.error(`❌ Błąd: Nie znaleziono gamy ${correctScale}`);
-        return;
-    }
+    console.log(`🎵 Gama: ${scaleNamesPL[correctScale]} od nuty #${correctScaleBaseIndex}`);
 
     setTimeout(() => {
         playScale(scaleNotes);
-    }, 1500); // Czekamy 1,5 sekundy przed nową gamą
+    }, 1500);
 }
 
-// ✅ Pobranie nut gamy (gra w górę i w dół)
-function getScaleNotes(scale) {
-    let up = scales[scale];
-    let down = [...up].reverse(); // Gra w dół
-    if (scale === 'melodicMinor') {
-        return [...up, ...scales.naturalMinor.reverse()]; // Melodyczna w dół wraca do naturalnej molowej
+// budowanie listy nut: góra + dół
+function getScaleNotes(scale, baseIndex) {
+    const up = [];
+
+    if (scale === "major") {
+        scalePatterns.major.forEach(o => up.push(baseIndex + o));
+    } else if (scale === "dorian") {
+        scalePatterns.dorian.forEach(o => up.push(baseIndex + o));
+    } else if (scale === "harmonicMinor") {
+        scalePatterns.harmonicMinor.forEach(o => up.push(baseIndex + o));
+    } else if (scale === "melodicMinor") {
+        scalePatterns.melodicMinorUp.forEach(o => up.push(baseIndex + o));
+    } else {
+        return [];
     }
-    return [...up, ...down];
+
+    if (scale === "melodicMinor") {
+        const down = [];
+        scalePatterns.naturalMinor.slice().reverse().forEach(o =>
+            down.push(baseIndex + o)
+        );
+        return [...up, ...down];
+    } else {
+        const down = [...up].reverse();
+        return [...up, ...down];
+    }
 }
 
-// ✅ Odtwarzanie gamy (ucina dźwięki 100 ms przed następnym)
+// ------------------------------------------
+// ODTWARZANIE GAMY
+// ------------------------------------------
+
 function playScale(scaleNotes) {
-    activeAudio = []; // Resetujemy aktywne dźwięki
-    isPlaying = true; // Ustawiamy, że teraz coś gra
+    activeAudio = [];
+    isPlaying = true;
 
-    scaleNotes.forEach((note, index) => {
-        let timeoutId = setTimeout(() => {
-            if (!isPlaying) return; // Jeśli użytkownik kliknął "Sprawdź", to nie graj dalej
+    scaleNotes.forEach((noteIndex, i) => {
+        const id = setTimeout(() => {
+            if (!isPlaying) return;
 
-            let audio = new Audio(notes[note]);
-            console.log(`▶️ Odtwarzam: ${note}`);
-            audio.play().catch(error => console.error(`❌ Błąd odtwarzania ${notes[note]}:`, error));
-            activeAudio.push(audio); // Dodajemy dźwięk do listy aktywnych
+            if (noteIndex < 1 || noteIndex > TOTAL_NOTES) {
+                console.error("❌ Poza zakresem klawiatury:", noteIndex);
+                return;
+            }
 
-            // 🛑 Ucinamy dźwięk 100ms przed kolejnym
-            let stopTimeout = setTimeout(() => {
+            const audio = new Audio(getNotePath(noteIndex));
+            audio.play().catch(() => {});
+            activeAudio.push(audio);
+
+            const stopId = setTimeout(() => {
                 audio.pause();
                 audio.currentTime = 0;
-            }, 850); // 800ms (czas trwania nuty) - 100ms
+            }, 850);
 
-            timeoutIds.push(stopTimeout);
-        }, index * 800); // Opóźnienie między nutami = 800ms
+            timeoutIds.push(stopId);
+        }, i * 800);
 
-        timeoutIds.push(timeoutId);
+        timeoutIds.push(id);
     });
 }
 
-// ✅ Powtórzenie ostatniej gamy
 function repeatLastScale() {
-    if (!correctScale) return;
-    console.log(`🔁 Powtórzenie gamy: ${scaleNamesPL[correctScale]}`);
-    playScale(getScaleNotes(correctScale));
+    if (!lastScaleNotes || lastScaleNotes.length === 0) return;
+    console.log(`🔁 Powtórka gamy: ${scaleNamesPL[correctScale]}`);
+    stopAllAudio();
+    clearAllTimeouts();
+    playScale(lastScaleNotes);
 }
 
-// ✅ Zatrzymanie wszystkich dźwięków (kliknięcie "Sprawdź" lub nowa gra)
-function stopAllAudio() {
-    isPlaying = false; // Ustawiamy, że nie ma grania
-    activeAudio.forEach(audio => {
-        audio.pause();
-        audio.currentTime = 0;
-    });
-    activeAudio = [];
-}
+// ------------------------------------------
+// SPRAWDZANIE ODPOWIEDZI
+// ------------------------------------------
 
-// ✅ Usunięcie wszystkich zaplanowanych timeoutów
-function clearAllTimeouts() {
-    timeoutIds.forEach(timeoutId => clearTimeout(timeoutId));
-    timeoutIds = [];
-}
-
-// ✅ Sprawdzanie odpowiedzi użytkownika
 function checkScaleAnswer() {
-    stopAllAudio(); // Zatrzymuje granie aktualnej gamy!
-    clearAllTimeouts(); // Czyści wszystkie dźwięki, żeby nie odpaliły się stare!
+    stopAllAudio();
+    clearAllTimeouts();
 
-    let userAnswer = document.getElementById("scale-answer").value;
+    const userAnswer = document.getElementById("scale-answer").value;
+    if (!userAnswer) return;
 
     if (userAnswer === correctScale) {
         document.getElementById("feedback").innerText = "✅ Poprawnie!";
         correctCount++;
     } else {
-        document.getElementById("feedback").innerText = `❌ Niepoprawnie! To była: ${scaleNamesPL[correctScale]}`;
+        document.getElementById("feedback").innerText =
+            `❌ Źle! To była: ${scaleNamesPL[correctScale]}`;
         incorrectCount++;
     }
 
@@ -163,4 +246,22 @@ function checkScaleAnswer() {
         document.getElementById("feedback").innerText = "";
         playNewScale();
     }, 2000);
+}
+
+// ------------------------------------------
+// CLEAN-UP
+// ------------------------------------------
+
+function stopAllAudio() {
+    isPlaying = false;
+    activeAudio.forEach(a => {
+        a.pause();
+        a.currentTime = 0;
+    });
+    activeAudio = [];
+}
+
+function clearAllTimeouts() {
+    timeoutIds.forEach(id => clearTimeout(id));
+    timeoutIds = [];
 }

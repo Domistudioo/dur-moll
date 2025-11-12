@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test na Interwały</title>
+    <title>Test na Interwały | Domistudio</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,24 +11,28 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Twój styl -->
+    <!-- Styl wspólny -->
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* Prevent text selection */
-        body {
-            user-select: none; /* Non-selectable text */
-        }
-    </style>
 </head>
 <body>
 
+    <div class="app-navbar">
+        <div class="app-navbar-title">
+            <i class="fas fa-music"></i>
+            <span>Test na interwały</span>
+        </div>
+        <span class="badge-soft">
+            <i class="fas fa-bullseye"></i>
+            Dokładność intonacji
+        </span>
+    </div>
+
     <div class="container">
-        <h1 class="text-center mt-4"><i class="fas fa-music"></i> Test na Interwały</h1>
+        <h1><i class="fas fa-music"></i> Test na Interwały</h1>
 
         <!-- Wybór interwałów do testu -->
-        <div class="card p-4 mt-4">
-            <h3 class="text-center"><i class="fas fa-check-square"></i> Wybierz interwały do testu</h3>
+        <div class="card mt-4">
+            <h3 class="text-center mb-3"><i class="fas fa-check-square me-2"></i> Wybierz interwały do testu</h3>
             <button class="btn btn-secondary btn-sm mb-3" onclick="toggleAllIntervals()">Zaznacz/Odznacz wszystko</button>
             <div class="row">
                 <div class="col-md-6">
@@ -45,6 +49,7 @@
                     <label><input type="checkbox" class="interval-checkbox" value="8"> Seksta mała</label><br>
                     <label><input type="checkbox" class="interval-checkbox" value="9"> Seksta wielka</label><br>
                     <label><input type="checkbox" class="interval-checkbox" value="10"> Septyma mała</label><br>
+                    <label><input type="checkbox" class="interval-checkbox" value="11"> Septyma wielka</label><br>
                     <label><input type="checkbox" class="interval-checkbox" value="12"> Oktawa</label><br>
                 </div>
             </div>
@@ -52,23 +57,27 @@
 
         <!-- Start testu -->
         <div class="text-center mt-4">
-            <button class="btn btn-primary btn-lg" onclick="startTest()"><i class="fas fa-play"></i> Rozpocznij test</button>
+            <button class="btn btn-primary btn-main-lg" onclick="startTest()">
+                <i class="fas fa-play me-2"></i> Rozpocznij test
+            </button>
         </div>
 
         <!-- Odtwarzanie interwału -->
-        <div class="text-center mt-4">
-            <button class="btn btn-success btn-lg" onclick="repeatLastInterval()"><i class="fas fa-redo"></i> Powtórz interwał</button>
+        <div class="text-center mt-3">
+            <button class="btn btn-success btn-main-lg" onclick="repeatLastInterval()">
+                <i class="fas fa-redo me-2"></i> Powtórz interwał
+            </button>
         </div>
 
         <!-- Statystyki -->
-        <div class="text-center mt-3">
+        <div class="text-center mt-3 stats-text">
             <p>Poprawne odpowiedzi: <span id="correct-count">0</span></p>
             <p>Błędne odpowiedzi: <span id="incorrect-count">0</span></p>
         </div>
 
         <!-- Wybór odpowiedzi -->
-        <div class="text-center">
-            <select id="answer" class="form-select w-50 mx-auto">
+        <div class="text-center mt-2">
+            <select id="answer" class="form-select w-50 mx-auto mb-3">
                 <option value="">Wybierz interwał...</option>
                 <option value="0">Pryma</option>
                 <option value="1">Sekunda mała</option>
@@ -81,24 +90,28 @@
                 <option value="8">Seksta mała</option>
                 <option value="9">Seksta wielka</option>
                 <option value="10">Septyma mała</option>
+                <option value="11">Septyma wielka</option>
                 <option value="12">Oktawa</option>
             </select>
-            <button class="btn btn-warning mt-3" onclick="checkAnswer()">Sprawdź</button>
-        </div>
-
-        <p id="feedback" class="text-center mt-3"></p>
-
-        <!-- Przycisk powrotu do strony głównej -->
-        <div class="text-center mt-5">
-            <button class="btn btn-dark btn-lg" onclick="window.location.href='Baza.html'">
-                <i class="fas fa-arrow-left"></i> Powrót do strony głównej
+            <button class="btn btn-warning btn-main-lg" onclick="checkAnswer()">
+                <i class="fas fa-check me-2"></i> Sprawdź
             </button>
         </div>
 
-        <script src="scriptinterwalow.js"></script>
+        <p id="feedback" class="mt-3"></p>
+
+        <!-- Przycisk powrotu do strony głównej -->
+        <div class="text-center mt-5">
+            <button class="btn btn-dark btn-main-lg" onclick="window.location.href='Baza.html'">
+                <i class="fas fa-arrow-left me-2"></i> Powrót do strony głównej
+            </button>
+        </div>
     </div>
+
+    <div class="footer">
+        &copy; Copyright 2025 | <span>Domistudio</span>
+    </div>
+
+    <script src="scriptinterwalow.js"></script>
 </body>
-<div class="footer mt-5">
-    &copy; Copyright 2025 | Domistudio
-</div>
 </html>

@@ -74,14 +74,14 @@ function playInterval(interval) {
         notesToPlay = [baseNote, nextNote, baseNote]; // Góra → Dół
     }
 
-    let isSequential = document.getElementById("sequential").checked;
+    let isSequentialMode = document.getElementById("sequential").checked;
     let isTogether = document.getElementById("together").checked;
 
     isPlaying = true;
 
     if (isTogether) {
         notesToPlay.forEach(playNoteAudio);
-    } else {
+    } else if (isSequentialMode) {
         notesToPlay.forEach((note, index) => {
             let timeoutId = setTimeout(() => {
                 if (!isPlaying) return;
@@ -122,14 +122,14 @@ function playChord(type) {
         notesToPlay = [...notesToPlay, ...notesToPlay.slice(0, -1).reverse()];
     }
 
-    let isSequential = document.getElementById("sequential").checked;
+    let isSequentialMode = document.getElementById("sequential").checked;
     let isTogether = document.getElementById("together").checked;
 
     isPlaying = true;
 
     if (isTogether) {
         notesToPlay.forEach(playNoteAudio);
-    } else {
+    } else if (isSequentialMode) {
         notesToPlay.forEach((note, index) => {
             let timeoutId = setTimeout(() => {
                 if (!isPlaying) return;

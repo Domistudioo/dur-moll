@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test na Gamy</title>
+    <title>Test na Gamy | Domistudio</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,45 +11,27 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            user-select: none; /* Prevent text selection */
-        }
-
-        .container {
-            margin-top: 30px;
-        }
-
-        .btn-custom {
-            font-size: 18px;
-            padding: 10px 20px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #198754;
-            font-weight: bold;
-        }
-
-        .feedback {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 20px;
-            text-align: center;
-        }
-    </style>
     <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
+
+    <div class="app-navbar">
+        <div class="app-navbar-title">
+            <i class="fas fa-piano"></i>
+            <span>Test na gamy (BETA)</span>
+        </div>
+        <span class="badge-soft">
+            <i class="fas fa-wave-square"></i>
+            Kierunek melodii
+        </span>
+    </div>
 
     <div class="container">
         <h1><i class="fas fa-music"></i> Test na Gamy</h1>
 
         <!-- Wybór gam -->
-        <div class="card p-4 mt-4">
-            <h3 class="text-center"><i class="fas fa-check-square"></i> Wybierz gamy do testu</h3>
+        <div class="card mt-4">
+            <h3 class="text-center mb-3"><i class="fas fa-check-square me-2"></i> Wybierz gamy do testu</h3>
             <button class="btn btn-secondary btn-sm mb-3" onclick="toggleAllScales()">Zaznacz/Odznacz wszystko</button>
             <div class="row">
                 <div class="col-md-6">
@@ -65,46 +47,53 @@
 
         <!-- Start testu -->
         <div class="text-center mt-4">
-            <button class="btn btn-primary btn-lg" onclick="startScaleTest()"><i class="fas fa-play"></i> Rozpocznij test</button>
+            <button class="btn btn-primary btn-main-lg" onclick="startScaleTest()">
+                <i class="fas fa-play me-2"></i> Rozpocznij test
+            </button>
         </div>
 
         <!-- Odtwarzanie gamy -->
-        <div class="text-center mt-4">
-            <button class="btn btn-success btn-lg" onclick="repeatLastScale()"><i class="fas fa-redo"></i> Powtórz gamę</button>
+        <div class="text-center mt-3">
+            <button class="btn btn-success btn-main-lg" onclick="repeatLastScale()">
+                <i class="fas fa-redo me-2"></i> Powtórz gamę
+            </button>
         </div>
 
         <!-- Statystyki -->
-        <div class="text-center mt-3">
+        <div class="text-center mt-3 stats-text">
             <p>Poprawne odpowiedzi: <span id="correct-count">0</span></p>
             <p>Błędne odpowiedzi: <span id="incorrect-count">0</span></p>
         </div>
 
         <!-- Wybór odpowiedzi -->
-        <div class="text-center">
-            <select id="scale-answer" class="form-select w-50 mx-auto">
+        <div class="text-center mt-2">
+            <select id="scale-answer" class="form-select w-50 mx-auto mb-3">
                 <option value="">Wybierz gamę...</option>
                 <option value="major">Durowa</option>
                 <option value="dorian">Molowa dorycka</option>
                 <option value="harmonicMinor">Molowa harmoniczna</option>
                 <option value="melodicMinor">Molowa melodyczna</option>
             </select>
-            <button class="btn btn-warning mt-3" onclick="checkScaleAnswer()">Sprawdź</button>
+            <button class="btn btn-warning btn-main-lg" onclick="checkScaleAnswer()">
+                <i class="fas fa-check me-2"></i> Sprawdź
+            </button>
         </div>
 
         <p id="feedback" class="feedback"></p>
 
         <!-- Przycisk powrotu do strony głównej -->
         <div class="text-center mt-5">
-            <button class="btn btn-dark btn-lg" onclick="window.location.href='baza.html'">
-                <i class="fas fa-arrow-left"></i> Powrót do strony głównej
+            <button class="btn btn-dark btn-main-lg" onclick="window.location.href='Baza.html'">
+                <i class="fas fa-arrow-left me-2"></i> Powrót do strony głównej
             </button>
         </div>
-
-        <!-- Import pliku JavaScript -->
-        <script src="scriptgamy.js"></script>
     </div>
+
+    <div class="footer">
+        &copy; Copyright 2025 | <span>Domistudio</span>
+    </div>
+
+    <!-- Import pliku JavaScript -->
+    <script src="scriptgamy.js"></script>
 </body>
 </html>
-<div class="footer mt-5">
-    &copy; Copyright 2025 | Domistudio
-</div>

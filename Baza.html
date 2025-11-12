@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interwały i Trójdźwięki</title>
+    <title>Domistudio | Trening słuchu</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,15 +13,23 @@
 
     <!-- Zewnętrzny plik CSS -->
     <link rel="stylesheet" href="style.css">
-
-    <style>
-        /* Prevent text selection */
-        body {
-            user-select: none; /* Non-selectable text */
-        }
-    </style>
 </head>
 <body>
+
+    <!-- Top pill navbar -->
+    <div class="app-navbar">
+        <div class="app-navbar-title">
+            <i class="fas fa-wave-square"></i>
+            <span>Domistudio – Trening słuchu</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge-soft">
+                <i class="fas fa-headphones"></i>
+                Ear training
+            </span>
+            <span class="app-navbar-pill">PRO</span>
+        </div>
+    </div>
 
     <div class="container">
         <h1><i class="fas fa-music"></i> Interwały i Trójdźwięki</h1>
@@ -29,55 +37,63 @@
         <!-- Opcje odtwarzania -->
         <div class="row mt-4">
             <div class="col-md-8 mx-auto">
-                <div class="card p-4">
-                    <h3 class="text-center"><i class="fas fa-sliders-h"></i> Opcje odtwarzania</h3>
+                <div class="card">
+                    <h3 class="text-center mb-3"><i class="fas fa-sliders-h me-2"></i> Opcje odtwarzania</h3>
                     
-                    <div class="row">
+                    <div class="row gy-4">
                         <!-- Tryb odtwarzania -->
                         <div class="col-md-6">
-                            <h5 class="text-center"><i class="fas fa-play"></i> Tryb odtwarzania</h5>
+                            <h5 class="text-center mb-3"><i class="fas fa-play me-2"></i> Tryb odtwarzania</h5>
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="sequential" checked onclick="toggleOption('sequential'); toggleButtons();">
                                 <label class="form-check-label" for="sequential">Po kolei</label>
                             </div>
-                            <div class="form-check">
+                            <div class="form-check mt-1">
                                 <input type="checkbox" class="form-check-input" id="together" onclick="toggleOption('together'); toggleButtons();">
                                 <label class="form-check-label" for="together">Razem</label>
                             </div>
+                            <p class="mt-3 stats-text">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                <span>Tip:</span> tryb „Razem” blokuje wybór kierunku – słyszysz interwał / trójdźwięk w pełnym brzmieniu.
+                            </p>
                         </div>
 
                         <!-- Kierunek odtwarzania -->
                         <div class="col-md-6">
-                            <h5 class="text-center"><i class="fas fa-arrow-up"></i> Kierunek</h5>
+                            <h5 class="text-center mb-3"><i class="fas fa-arrow-up me-2"></i> Kierunek</h5>
                             <div class="form-check">
                                 <input type="radio" name="direction" class="form-check-input" id="up" checked>
                                 <label class="form-check-label" for="up">W górę</label>
                             </div>
-                            <div class="form-check">
+                            <div class="form-check mt-1">
                                 <input type="radio" name="direction" class="form-check-input" id="down">
                                 <label class="form-check-label" for="down">W dół</label>
                             </div>
-                            <div class="form-check">
+                            <div class="form-check mt-1">
                                 <input type="radio" name="direction" class="form-check-input" id="updown">
                                 <label class="form-check-label" for="updown">Góra → Dół</label>
                             </div>
                         </div>
                     </div>
 
-                    <hr>
+                    <hr class="my-4">
 
                     <!-- Wybór dźwięku -->
                     <div class="row">
-                        <div class="col-md-12">
-                            <h5 class="text-center"><i class="fas fa-music"></i> Wybór dźwięku</h5>
-                            <div class="form-check text-center">
+                        <div class="col-md-12 text-center">
+                            <h5 class="mb-3"><i class="fas fa-music me-2"></i> Wybór dźwięku bazowego</h5>
+                            <div class="form-check form-check-inline">
                                 <input type="radio" name="baseNote" class="form-check-input" id="same" checked>
                                 <label class="form-check-label" for="same">Od tego samego dźwięku</label>
                             </div>
-                            <div class="form-check text-center">
+                            <div class="form-check form-check-inline">
                                 <input type="radio" name="baseNote" class="form-check-input" id="random">
                                 <label class="form-check-label" for="random">Od różnych dźwięków</label>
                             </div>
+                            <p class="mt-3 stats-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <span>Tryb random</span> lepiej przygotuje Cię na prawdziwe sytuacje muzyczne.
+                            </p>
                         </div>
                     </div>
 
@@ -88,72 +104,86 @@
         <!-- Interwały -->
         <div class="row mt-4">
             <div class="col-md-8 mx-auto">
-                <div class="card p-4">
-                    <h3 class="text-center"><i class="fas fa-music"></i> Interwały</h3>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(0)">Pryma</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(1)">Sekunda mała</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(2)">Sekunda wielka</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(3)">Tercja mała</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(4)">Tercja wielka</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(5)">Kwarta czysta</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(6)">Tryton</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(7)">Kwinta czysta</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(8)">Seksta mała</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(9)">Seksta wielka</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(10)">Septyma mała</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(11)">Septyma wielka</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playInterval(12)">Oktawa</button>
+                <div class="card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="mb-0"><i class="fas fa-music me-2"></i> Interwały</h3>
+                        <span class="badge-soft">
+                            <i class="fas fa-ear-listen"></i>
+                            Ćwiczenie wysokości
+                        </span>
+                    </div>
+                    <div class="d-grid gap-2 mt-2">
+                        <button class="btn btn-success w-100" onclick="playInterval(0)">Pryma</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(1)">Sekunda mała</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(2)">Sekunda wielka</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(3)">Tercja mała</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(4)">Tercja wielka</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(5)">Kwarta czysta</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(6)">Tryton</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(7)">Kwinta czysta</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(8)">Seksta mała</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(9)">Seksta wielka</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(10)">Septyma mała</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(11)">Septyma wielka</button>
+                        <button class="btn btn-success w-100" onclick="playInterval(12)">Oktawa</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Trójdźwięki -->
-        <div class="row mt-4">
+        <div class="row mt-4 mb-4">
             <div class="col-md-8 mx-auto">
-                <div class="card p-4">
-                    <h3 class="text-center"><i class="fas fa-guitar"></i> Trójdźwięki</h3>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('major')">Durowy</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('major1')">Durowy (I przewrót)</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('major2')">Durowy (II przewrót)</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('minor')">Molowy</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('minor1')">Molowy (I przewrót)</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('minor2')">Molowy (II przewrót)</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('augmented')">Zwiększony</button>
-                        <button class="btn btn-success w-100 mb-2" onclick="playChord('diminished')">Zmniejszony</button>
+                <div class="card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="mb-0"><i class="fas fa-guitar me-2"></i> Trójdźwięki</h3>
+                        <span class="badge-soft">
+                            <i class="fas fa-chess-board"></i>
+                            Brzmienia akordów
+                        </span>
+                    </div>
+                    <div class="d-grid gap-2 mt-2">
+                        <button class="btn btn-success w-100" onclick="playChord('major')">Durowy</button>
+                        <button class="btn btn-success w-100" onclick="playChord('major1')">Durowy (I przewrót)</button>
+                        <button class="btn btn-success w-100" onclick="playChord('major2')">Durowy (II przewrót)</button>
+                        <button class="btn btn-success w-100" onclick="playChord('minor')">Molowy</button>
+                        <button class="btn btn-success w-100" onclick="playChord('minor1')">Molowy (I przewrót)</button>
+                        <button class="btn btn-success w-100" onclick="playChord('minor2')">Molowy (II przewrót)</button>
+                        <button class="btn btn-success w-100" onclick="playChord('augmented')">Zwiększony</button>
+                        <button class="btn btn-success w-100" onclick="playChord('diminished')">Zmniejszony</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sekcja testów -->
+        <div class="row mt-2">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <h3 class="text-center mb-3"><i class="fas fa-clipboard-list me-2"></i> Tryby testów</h3>
+                    <div class="d-grid gap-3">
+                        <a href="interwaly.html" class="btn btn-primary btn-main-lg d-flex align-items-center justify-content-center">
+                            <i class="fas fa-music me-2"></i> Test na interwały
+                        </a>
+                        <a href="trojdzwieki.html" class="btn btn-primary btn-main-lg d-flex align-items-center justify-content-center">
+                            <i class="fas fa-guitar me-2"></i> Test na trójdźwięki
+                        </a>
+                        <a href="gamy.html" class="btn btn-primary btn-main-lg d-flex align-items-center justify-content-center">
+                            <i class="fas fa-piano me-2"></i> Test na gamy <span class="ms-1 text-white-50">(BETA)</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
     </div>
-    <!-- Sekcja testów -->
-    <div class="row mt-4">
-        <div class="col-md-8 mx-auto">
-            <div class="card p-4">
-                <h3 class="text-center"><i class="fas fa-clipboard-list"></i> Testy</h3>
-                <div class="d-grid gap-3">
-                    <a href="interwaly.html" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center">
-                        <i class="fas fa-music me-2"></i> Test na interwały
-                    </a>
-                    <a href="trojdzwieki.html" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center">
-                        <i class="fas fa-guitar me-2"></i> Test na trójdźwięki
-                    </a>
-                    <a href="gamy.html" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center">
-                        <i class="fas fa-piano me-2"></i> Test na gamy (BETA)
-                    </a>
-                </div>
-            </div>
-        </div>
+
+    <div class="footer">
+        &copy; Copyright 2025 | <span>Domistudio</span>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
-<div class="footer mt-5">
-    &copy; Copyright 2025 | Domistudio
-</div>
 </html>

@@ -1,60 +1,127 @@
-// ✅ Lista wybranych trójdźwięków do testu
+// ==========================================
+// TEST TRÓJDŹWIĘKÓW – LOGIKA
+// ==========================================
+
+// Stan
 let selectedChords = [];
 let correctChord;
+let correctChordBaseIndex;
+let lastChordBaseIndex;
 let correctCount = 0;
 let incorrectCount = 0;
-let isPlaying = false; // Flaga oznaczająca, czy aktualnie coś gra
-let timeoutIds = []; // Lista timeoutów do kontroli grania
+let isPlaying = false;
+let timeoutIds = [];
 
-// ✅ Pełna skala chromatyczna
-const noteNames = [
-    'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
-    'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4'
-];
+// Konfiguracja klawiatury: 1.mp3 ... 88.mp3
+const TOTAL_NOTES = 88;
+const CENTER_NOTE = 44;    // środek klawiatury
+const CENTER_SPREAD = 18;  // ile klawiszy w lewo/prawo od środka
 
-// ✅ Mapowanie nut do plików `.mp3`
-const notes = {};
-noteNames.forEach((note, index) => {
-    notes[note] = `piano/${index + 28}.mp3`;
-});
+// Historia – żeby nie było ciągle tego samego akordu
+let prevChord = null;
+let prevPrevChord = null;
 
-// ✅ Definicja trójdźwięków (akordów)
-const chords = {
-    'major': [0, 4, 7],
-    'major1': [4, 7, 12],
-    'major2': [7, 12, 16],
-    'minor': [0, 3, 7],
-    'minor1': [3, 7, 12],
-    'minor2': [7, 12, 15],
-    'augmented': [0, 4, 8],
-    'diminished': [0, 3, 6]
-};
+// ------------------------------------------
+// PLIK DŹWIĘKOWY
+// ------------------------------------------
 
-// ✅ Mapowanie nazw akordów na polski
-const chordNamesPL = {
-    'major': "Durowy",
-    'major1': "Durowy (I przewrót)",
-    'major2': "Durowy (II przewrót)",
-    'minor': "Molowy",
-    'minor1': "Molowy (I przewrót)",
-    'minor2': "Molowy (II przewrót)",
-    'augmented': "Zwiększony",
-    'diminished': "Zmniejszony"
-};
-
-// ✅ Zaznaczanie/Odznaczanie wszystkich trójdźwięków
-function toggleAllChords() {
-    let checkboxes = document.querySelectorAll(".chord-checkbox");
-    let allChecked = [...checkboxes].every(checkbox => checkbox.checked);
-    checkboxes.forEach(checkbox => (checkbox.checked = !allChecked));
+function getNotePath(index) {
+    return `piano/${index}.mp3`;
 }
 
-// ✅ Start testu na trójdźwięki
-function startChordTest() {
-    if (isPlaying) return; // Jeśli dźwięk gra, nie pozwól na nowe odtwarzanie
+// losowanie bazowego dźwięku bardziej ze środka klawiatury
+function getRandomBaseIndex(maxOffset) {
+    const preferredMin = CENTER_NOTE - CENTER_SPREAD;
+    const preferredMax = CENTER_NOTE + CENTER_SPREAD;
+    const maxBaseAllowed = TOTAL_NOTES - maxOffset;
 
-    selectedChords = Array.from(document.querySelectorAll(".chord-checkbox:checked"))
-        .map(input => input.value);
+    const min = Math.max(1, preferredMin);
+    const max = Math.min(maxBaseAllowed, preferredMax);
+
+    const low = Math.max(1, Math.min(min, maxBaseAllowed));
+    const high = Math.max(low, max);
+
+    return Math.floor(Math.random() * (high - low + 1)) + low;
+}
+
+// ------------------------------------------
+// DEFINICJA AKORDÓW
+// ------------------------------------------
+
+const chords = {
+    major:     [0, 4, 7],
+    major1:    [4, 7, 12],
+    major2:    [7, 12, 16],
+    minor:     [0, 3, 7],
+    minor1:    [3, 7, 12],
+    minor2:    [7, 12, 15],
+    augmented: [0, 4, 8],
+    diminished:[0, 3, 6]
+};
+
+const chordNamesPL = {
+    major:     "Durowy",
+    major1:    "Durowy (I przewrót)",
+    major2:    "Durowy (II przewrót)",
+    minor:     "Molowy",
+    minor1:    "Molowy (I przewrót)",
+    minor2:    "Molowy (II przewrót)",
+    augmented: "Zwiększony",
+    diminished:"Zmniejszony"
+};
+
+// ------------------------------------------
+// UI: zaznacz wszystko
+// ------------------------------------------
+
+function toggleAllChords() {
+    const checkboxes = document.querySelectorAll(".chord-checkbox");
+    const allChecked = [...checkboxes].every(ch => ch.checked);
+    checkboxes.forEach(ch => ch.checked = !allChecked);
+}
+
+// ------------------------------------------
+// LOSOWANIE AKORDU Z ANTY-SPAMEM
+// ------------------------------------------
+
+function chooseRandomChord() {
+    if (selectedChords.length === 0) return null;
+
+    if (selectedChords.length === 1) {
+        const only = selectedChords[0];
+        prevPrevChord = prevChord;
+        prevChord = only;
+        return only;
+    }
+
+    let candidate;
+    let attempts = 0;
+
+    do {
+        candidate = selectedChords[Math.floor(Math.random() * selectedChords.length)];
+        attempts++;
+
+        const forbidden =
+            candidate === prevChord ||
+            candidate === prevPrevChord; // unikanie wzoru A–B–A–B
+
+        if (!forbidden || attempts > 20) break;
+    } while (true);
+
+    prevPrevChord = prevChord;
+    prevChord = candidate;
+    return candidate;
+}
+
+// ------------------------------------------
+// START TESTU
+// ------------------------------------------
+
+function startChordTest() {
+    if (isPlaying) return;
+
+    selectedChords = [...document.querySelectorAll(".chord-checkbox:checked")]
+        .map(x => x.value);
 
     if (selectedChords.length === 0) {
         alert("Wybierz przynajmniej jeden trójdźwięk!");
@@ -63,41 +130,98 @@ function startChordTest() {
 
     correctCount = 0;
     incorrectCount = 0;
-    document.getElementById("correct-chord-count").innerText = correctCount;
-    document.getElementById("incorrect-chord-count").innerText = incorrectCount;
+    document.getElementById("correct-chord-count").innerText = "0";
+    document.getElementById("incorrect-chord-count").innerText = "0";
     document.getElementById("chord-feedback").innerText = "";
+
+    prevChord = null;
+    prevPrevChord = null;
 
     playNewChord();
 }
 
-// ✅ Odtwarzanie losowego trójdźwięku
+// ------------------------------------------
+// GRANIE NOWEGO TRÓJDŹWIĘKU
+// ------------------------------------------
+
 function playNewChord() {
-    if (isPlaying) return; // Jeśli dźwięk nadal gra, nie pozwól na nowe odtwarzanie
+    if (isPlaying) return;
 
     stopAllAudio();
     clearAllTimeouts();
 
-    correctChord = selectedChords[Math.floor(Math.random() * selectedChords.length)];
+    correctChord = chooseRandomChord();
+    if (!correctChord) return;
 
-    console.log(`🎵 Odtwarzanie trójdźwięku: ${chordNamesPL[correctChord]}`);
-    playChord(correctChord);
+    const maxOffset = Math.max(...chords[correctChord]);
+    correctChordBaseIndex = getRandomBaseIndex(maxOffset);
+    lastChordBaseIndex = correctChordBaseIndex;
+
+    console.log(`🎵 Trójdźwięk: ${chordNamesPL[correctChord]} od nuty #${correctChordBaseIndex}`);
+
+    playChord(correctChord, correctChordBaseIndex);
 }
 
-// ✅ Powtórzenie ostatniego trójdźwięku
+// powtórzenie ostatniego
 function repeatLastChord() {
-    if (isPlaying || !correctChord) return;
+    if (isPlaying || !correctChord || !lastChordBaseIndex) return;
 
-    console.log(`🔁 Powtórzenie trójdźwięku: ${chordNamesPL[correctChord]}`);
-    playChord(correctChord);
+    console.log(`🔁 Powtórka: ${chordNamesPL[correctChord]} od nuty #${lastChordBaseIndex}`);
+    stopAllAudio();
+    clearAllTimeouts();
+    playChord(correctChord, lastChordBaseIndex);
 }
 
-// ✅ Funkcja sprawdzania odpowiedzi użytkownika
+// właściwe granie trójdźwięku
+function playChord(type, baseIndex) {
+    const pattern = chords[type];
+    if (!pattern) {
+        console.error("❌ Nieznany akord:", type);
+        return;
+    }
+
+    isPlaying = true;
+    const notesToPlay = pattern.map(offset => baseIndex + offset);
+
+    console.log("Nuty akordu:", notesToPlay.join(", "));
+
+    notesToPlay.forEach((noteIndex, i) => {
+        const id = setTimeout(() => {
+            if (!isPlaying) return;
+
+            if (noteIndex < 1 || noteIndex > TOTAL_NOTES) {
+                console.error("❌ Poza zakresem klawiatury:", noteIndex);
+                return;
+            }
+
+            const audio = new Audio(getNotePath(noteIndex));
+            audio.play().catch(() => {});
+
+            const stopId = setTimeout(() => {
+                audio.pause();
+                audio.currentTime = 0;
+            }, 850);
+
+            timeoutIds.push(stopId);
+        }, i * 800);
+
+        timeoutIds.push(id);
+    });
+
+    timeoutIds.push(setTimeout(() => {
+        isPlaying = false;
+    }, notesToPlay.length * 800));
+}
+
+// ------------------------------------------
+// SPRAWDZANIE ODPOWIEDZI
+// ------------------------------------------
+
 function checkChordAnswer() {
     stopAllAudio();
     clearAllTimeouts();
 
-    let userAnswer = document.getElementById("chord-answer").value;
-
+    const userAnswer = document.getElementById("chord-answer").value;
     if (!userAnswer) {
         alert("Wybierz trójdźwięk przed sprawdzeniem!");
         return;
@@ -107,7 +231,8 @@ function checkChordAnswer() {
         document.getElementById("chord-feedback").innerText = "✅ Poprawnie!";
         correctCount++;
     } else {
-        document.getElementById("chord-feedback").innerText = `❌ Niepoprawnie! To był: ${chordNamesPL[correctChord]}`;
+        document.getElementById("chord-feedback").innerText =
+            `❌ Źle! To był: ${chordNamesPL[correctChord]}`;
         incorrectCount++;
     }
 
@@ -120,66 +245,17 @@ function checkChordAnswer() {
     }, 2000);
 }
 
-// ✅ Funkcja odtwarzania trójdźwięków
-function playChord(type) {
-    if (!chords[type]) {
-        console.error(`❌ Nie znaleziono akordu: ${type}`);
-        return;
-    }
+// ------------------------------------------
+// CLEAN-UP
+// ------------------------------------------
 
-    isPlaying = true;
-    let baseNote = 'C3';
-    let notesToPlay = chords[type].map(i => noteNames[noteNames.indexOf(baseNote) + i]);
-
-    console.log(`🎵 Odtwarzanie trójdźwięku: ${type} - ${notesToPlay.join(', ')}`);
-
-    notesToPlay.forEach((note, index) => {
-        let timeoutId = setTimeout(() => {
-            if (!isPlaying) return; // Jeśli użytkownik kliknął "Sprawdź", to nie graj dalej
-
-            let audio = new Audio(notes[note]);
-            console.log(`▶️ Odtwarzam: ${note}`);
-            audio.play().catch(error => console.error(`❌ Błąd odtwarzania ${notes[note]}:`, error));
-
-            timeoutIds.push(setTimeout(() => {
-                audio.pause();
-                audio.currentTime = 0;
-            }, 850)); // Skracamy dźwięk przed kolejnym
-
-        }, index * 800); // Opóźnienie między nutami = 800ms
-
-        timeoutIds.push(timeoutId);
-    });
-
-    setTimeout(() => {
-        isPlaying = false;
-    }, notesToPlay.length * 800);
-}
-
-// ✅ Funkcja zatrzymywania wszystkich dźwięków
 function stopAllAudio() {
     isPlaying = false;
-    timeoutIds.forEach(timeout => clearTimeout(timeout));
+    timeoutIds.forEach(id => clearTimeout(id));
     timeoutIds = [];
 }
 
-// ✅ Usuwanie wszystkich zaplanowanych timeoutów
 function clearAllTimeouts() {
-    timeoutIds.forEach(timeout => clearTimeout(timeout));
+    timeoutIds.forEach(id => clearTimeout(id));
     timeoutIds = [];
-}
-
-// ✅ Funkcja odtwarzania dźwięku z logowaniem błędów
-function playNoteAudio(note) {
-    if (!notes[note]) {
-        console.error(`❌ Błąd: Brak pliku dla nuty ${note}`);
-        return;
-    }
-
-    let audio = new Audio(notes[note]);
-    console.log(`▶️ Odtwarzam: ${notes[note]}`);
-
-    audio.play().catch((error) => {
-        console.error(`❌ Błąd odtwarzania ${notes[note]}:`, error);
-    });
 }
